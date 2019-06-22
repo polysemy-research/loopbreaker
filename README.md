@@ -1,8 +1,25 @@
 # Loopbreaker
 
-TODO: general description
+Performance of libraries like [polysemy](https://github.com/polysemy-research/polysemy)
+depends on code being aggresively inlined. Problem is that GHC is not very
+keen on inlining self-recursive definitions. Luckily, there's a way we can
+trick compiler to do so: by introducing intermediate _loopbreaker_ that simply
+calls our original function:
+```
+fact :: Int -> Int
+fact 0 = 1
+fact n = n * fact' (n - 1)
+{-# INLINE fact #-}
 
-@isovector:
+fact' :: Int -> Int
+fact' = fact
+{-# NOINLINE fact' #-}
+```
+But because this is ugly boilerplate nobody wants to write, we created GHC
+plugin that searches for such recursive definitions and automatically inserts
+loopbreakers during compilation.
+
+To quote [isovector](https://github.com/isovector):
 > As described in [Writing Custom Optimization Passes](https://reasonablypolymorphic.com/blog/writing-custom-optimizations/),
 The `polysemy-plugin` has had support for creating explicit loopbreakers for
 self-recursive functions. The result is pretty dramatic code improvements in a
