@@ -1,0 +1,53 @@
+name        : loopbreaker
+synopsis    : inline self-recursive definitions
+description : Please see the README file
+version     : 0.1.0.0
+category    : Plugin
+github      : "polysemy-research/loopbreaker"
+license     : BSD3
+author      : "Matej Nižník"
+maintainer  : "matten@tuta.io"
+copyright   : "2019 Matej Nižník"
+
+extra-source-files : [README.md, ChangeLog.md]
+
+dependencies :
+- base         >= 4.7     && < 5
+- ghc          >= 8.6     && < 8.7
+- syb          >= 0.7.1   && < 0.8
+- transformers >= 0.5.6.2 && < 0.6
+- containers   >= 0.6.0.1 && < 0.7
+
+library :
+  source-dirs     : src
+  exposed-modules : [Loopbreaker.Plugin]
+
+tests :
+  loopbreak-test :
+    main         : Spec.hs
+    source-dirs  : test
+    ghc-options  :
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    - -fplugin=Loopbreaker.Plugin
+    build-tools  :
+    - hspec-discover
+    dependencies :
+    - loopbreaker
+    - hspec              >= 2.6.1   && < 3
+    - inspection-testing >= 0.4.2.1 && < 0.5
+
+ghc-options :
+- -Wall
+
+default-extensions :
+- FlexibleContexts
+- LambdaCase
+- NamedFieldPuns
+- OverloadedStrings
+- ScopedTypeVariables
+- TupleSections
+- TypeFamilies
+- UnicodeSyntax
+- ViewPatterns
