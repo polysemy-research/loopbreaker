@@ -1,6 +1,5 @@
 module Loopbreaker.InlineRecCalls (action) where
 
-
 import           Control.Arrow
 import           Data.Bool
 import           Data.Generics
