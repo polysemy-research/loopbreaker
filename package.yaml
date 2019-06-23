@@ -5,9 +5,9 @@ version     : 0.1.0.0
 category    : Plugin
 github      : "polysemy-research/loopbreaker"
 license     : BSD3
-author      : "Matej Nižník"
+author      : ["Matej Nižník", "Sandy Maguire"]
 maintainer  : "matten@tuta.io"
-copyright   : "2019 Matej Nižník"
+copyright   : ["2019 Matej Nižník", "2019 Sandy Maguire"]
 
 extra-source-files : [README.md, ChangeLog.md]
 

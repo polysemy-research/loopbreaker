@@ -1,4 +1,4 @@
-module Loopbreaker.InlineRecCalls.Action (action) where
+module Loopbreaker.InlineRecCalls (action) where
 
 
 import           Control.Arrow
@@ -49,12 +49,13 @@ inlineRecCall :: MonadUnique m
               => Map (IdP GhcRn) (LHsSigWcType GhcRn)
               -> (RecFlag, LHsBinds GhcRn)
               -> m ((RecFlag, LHsBinds GhcRn), [LSig GhcRn])
-inlineRecCall types (Recursive, (bagToList -> [lfb]))
-  | L fun_loc fun_bind@FunBind{ fun_id = L _ fun_name, fun_matches } <- lfb
+inlineRecCall types (Recursive, binds)
+  | (bagToList -> [L fun_loc fun_bind])           <- binds
+  , FunBind{ fun_id = L _ fun_name, fun_matches } <- fun_bind
   = do
   (loopb_name, loopb_decl) <- loopbreaker fun_name
 
-  let msig         = loopbreakerSig loopb_name <$> M.lookup fun_name types
+  let m_loopb_sig  = loopbreakerSig loopb_name <$> M.lookup fun_name types
       fun_matches' = replaceVarNames fun_name loopb_name fun_matches
 
   pure
@@ -67,7 +68,9 @@ inlineRecCall types (Recursive, (bagToList -> [lfb]))
     , (  [ inline alwaysInlinePragma fun_name
          , inline noInlinePragma     loopb_name
          ]
-      ++ maybeToList msig
+      -- If the original function didn't have type signature specified, we
+      -- shouldn't have to have either
+      ++ maybeToList m_loopb_sig
       )
     )
 -- We ignore mutually recursive and other bindings
