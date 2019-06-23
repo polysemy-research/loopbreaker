@@ -31,7 +31,7 @@ correct code, but it was being done too late, and some special analysis passes
 had already run. The result: we'd generate loopbreakers, but they wouldn't be
 used.
 
-> [TheMatten](https://github.org/TheMatten) took it upon himself to fix this.
+> [TheMatten](https://github.com/TheMatten) took it upon himself to fix this.
 There's no trick --- just do the same transformations after renaming, rather
 than after typechecking. We realized this plugin is useful outside of
 polysemy, so it's been released as a standalone package.
