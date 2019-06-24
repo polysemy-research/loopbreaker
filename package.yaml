@@ -16,7 +16,6 @@ dependencies :
 - ghc              >= 8.6     && < 8.7
 - syb              >= 0.7     && < 0.8
 - containers       >= 0.6.0.1 && < 0.7
-- template-haskell >= 2.14    && < 2.15
 
 library :
   source-dirs     : src
