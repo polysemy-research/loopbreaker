@@ -12,18 +12,19 @@ copyright   : ["2019 Matej Nižník", "2019 Sandy Maguire"]
 extra-source-files : [README.md, ChangeLog.md]
 
 dependencies :
-- base         >= 4.7     && < 5
-- ghc          >= 8.6     && < 8.7
-- syb          >= 0.7.1   && < 0.8
-- transformers >= 0.5.6.2 && < 0.6
-- containers   >= 0.6.0.1 && < 0.7
+- base             >= 4.7     && < 5
+- ghc              >= 8.6     && < 8.7
+- syb              >= 0.7.1   && < 0.8
+- transformers     >= 0.5.6.2 && < 0.6
+- containers       >= 0.6.0.1 && < 0.7
+- template-haskell >= 2.14    && < 2.15
 
 library :
   source-dirs     : src
-  exposed-modules : [Loopbreaker.Plugin]
+  exposed-modules : [Loopbreaker, Loopbreaker.Plugin]
 
 tests :
-  loopbreak-test :
+  loopbreaker-test :
     main         : Spec.hs
     source-dirs  : test
     ghc-options  :
@@ -42,8 +43,11 @@ ghc-options :
 - -Wall
 
 default-extensions :
+- ConstraintKinds
 - FlexibleContexts
+- KindSignatures
 - LambdaCase
+- MultiWayIf
 - NamedFieldPuns
 - OverloadedStrings
 - ScopedTypeVariables

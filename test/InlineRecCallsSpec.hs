@@ -2,10 +2,9 @@
 
 {-# LANGUAGE TemplateHaskell #-}
 
-module PluginSpec (spec) where
+module InlineRecCallsSpec (spec) where
 
-import Test.Hspec
-import Test.Inspection
+import TestUtils
 
 
 ------------------------------------------------------------------------------
@@ -28,8 +27,3 @@ mutual n = n * mutual' (n - 1)
 mutual' :: Int -> Int
 mutual' = mutual
 {-# NOINLINE mutual' #-}
-
-------------------------------------------------------------------------------
-shouldSucceed :: Result -> Expectation
-shouldSucceed r = r `shouldSatisfy` \case Success{} -> True
-                                          Failure e -> error e
