@@ -14,8 +14,7 @@ extra-source-files : [README.md, ChangeLog.md]
 dependencies :
 - base             >= 4.7     && < 5
 - ghc              >= 8.6     && < 8.7
-- syb              >= 0.7.1   && < 0.8
-- transformers     >= 0.5.6.2 && < 0.6
+- syb              >= 0.7     && < 0.8
 - containers       >= 0.6.0.1 && < 0.7
 - template-haskell >= 2.14    && < 2.15
 
