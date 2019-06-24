@@ -3,7 +3,6 @@
 module Loopbreaker.InlineRecCalls (action) where
 
 import           Control.Arrow hiding ((<+>))
-import           Data.Bool
 import           Data.Generics
 import           Data.Kind
 import           Data.Map (Map)
@@ -33,24 +32,24 @@ action :: MonadInline m
        => [CommandLineOption] -> HsGroup GhcRn -> m (HsGroup GhcRn)
 action opts group = do
   -- Last option takes precedence, on by default
-  let isDefaultOn = fromMaybe True $ getLast
-                  $ flip foldMap opts $ Last . \case
-                      "default_on"  -> Just True
-                      "default_off" -> Just False
-                      _             -> Nothing
+  let break_by_default = fromMaybe True $ getLast
+                       $ flip foldMap opts $ Last . \case
+                           "default_on"  -> Just True
+                           "default_off" -> Just False
+                           _             -> Nothing
 
   dyn_flags <- getDynFlags
 
   if optLevel dyn_flags > 0
     then do
-      liftIO $ showPass dyn_flags "Add loopbreakers"
-      inlineRecCalls isDefaultOn group
+      liftIO $ showPass dyn_flags "Break loops"
+      inlineRecCalls break_by_default group
     else
       pure group
 
 ------------------------------------------------------------------------------
 inlineRecCalls :: MonadInline m => Bool -> HsGroup GhcRn -> m (HsGroup GhcRn)
-inlineRecCalls isDefaultOn group
+inlineRecCalls break_by_default group
   | HsGroup { hs_valds = XValBindsLR (NValBinds binds sigs)
             , hs_annds = map unLoc -> anns
             } <- group
@@ -59,7 +58,7 @@ inlineRecCalls isDefaultOn group
       loopb_anns = loopbreakerAnnsMap anns
 
   (binds', extra_sigs) <- second concat . unzip <$>
-    traverse (inlineRecCall isDefaultOn types loopb_anns) binds
+    traverse (inlineRecCall break_by_default types loopb_anns) binds
 
   pure group{ hs_valds = XValBindsLR $ NValBinds binds' $ sigs ++ extra_sigs }
 
@@ -96,11 +95,11 @@ inlineRecCall
   -> Map Name LoopbreakerAnn        -- ^ 'Loopbreaker' annotations
   -> (RecFlag, LHsBinds GhcRn)      -- ^ binding being inlined
   -> m ((RecFlag, LHsBinds GhcRn), [LSig GhcRn])
-inlineRecCall isDefaultOn types anns (Recursive, binds)
+inlineRecCall break_by_default types anns (Recursive, binds)
   | (bagToList -> [L fun_loc fun_bind])           <- binds
   , FunBind{ fun_id = L _ fun_name, fun_matches } <- fun_bind
   , ann                                           <- M.lookup fun_name anns
-  , ann == Just Loopbreaker || ann == Nothing && isDefaultOn
+  , ann == Just Loopbreaker || ann == Nothing && break_by_default
   = do
   dyn_flags <- getDynFlags
   liftIO $ debugTraceMsg dyn_flags 2 $ text "Loopbreaker:" <+> ppr fun_name
