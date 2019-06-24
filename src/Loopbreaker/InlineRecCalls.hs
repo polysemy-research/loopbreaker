@@ -102,7 +102,7 @@ inlineRecCall types inlined (Recursive, binds)
 inlineRecCall _ _ binds = pure (binds, [])
 
 ------------------------------------------------------------------------------
--- | Creates loopbreaker and it's name from the name of original function.
+-- | Creates loopbreaker and it's name from name of the original function.
 loopbreaker :: MonadUnique m => Name -> m (Name, LHsBind GhcRn)
 loopbreaker fun_name =
   (id &&& loopbreakerDecl fun_name) <$> loopbreakerName fun_name
