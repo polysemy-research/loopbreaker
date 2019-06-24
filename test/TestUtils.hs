@@ -6,7 +6,6 @@ module TestUtils
 
 import Test.Hspec      as U
 import Test.Inspection as U
-import Loopbreaker     as U
 
 
 ------------------------------------------------------------------------------

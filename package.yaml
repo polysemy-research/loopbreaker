@@ -19,7 +19,7 @@ dependencies :
 
 library :
   source-dirs     : src
-  exposed-modules : [Loopbreaker, Loopbreaker.Plugin]
+  exposed-modules : [Loopbreaker.Plugin]
 
 tests :
   loopbreaker-test :
