@@ -1,8 +1,8 @@
-{-# OPTIONS_GHC -O2 -fplugin-opt=Loopbreaker.Plugin:default_on #-}
+{-# OPTIONS_GHC -O2 #-}
 
 {-# LANGUAGE TemplateHaskell #-}
 
-module DefaultOnSpec (spec) where
+module PragmaDetectionSpec (spec) where
 
 import TestUtils
 
@@ -10,25 +10,19 @@ import TestUtils
 ------------------------------------------------------------------------------
 spec :: Spec
 spec = describe "plugin" $ do
-  it "should respect default_on flag" $ do
-    shouldSucceed $(inspectTest $ 'recursiveDefault === 'mutual)
+  it "should respect INLINE pragma" $ do
+    shouldFail    $(inspectTest $ 'recursiveDefault === 'mutual)
     shouldSucceed $(inspectTest $ 'recursiveOn      === 'mutual)
-    shouldFail    $(inspectTest $ 'recursiveOff     === 'mutual)
 
 ------------------------------------------------------------------------------
 recursiveDefault :: Int -> Int
 recursiveDefault 0 = 1
 recursiveDefault n = n * recursiveDefault (n - 1)
 
-recursiveOn:: Int -> Int
+recursiveOn :: Int -> Int
 recursiveOn 0 = 1
 recursiveOn n = n * recursiveOn (n - 1)
-{-# ANN recursiveOn Loopbreaker #-}
-
-recursiveOff :: Int -> Int
-recursiveOff 0 = 1
-recursiveOff n = n * recursiveOff (n - 1)
-{-# ANN recursiveOff NoLoopbreaker #-}
+{-# INLINE recursiveOn #-}
 
 mutual :: Int -> Int
 mutual 0 = 1

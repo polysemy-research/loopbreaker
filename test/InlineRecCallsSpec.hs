@@ -18,6 +18,7 @@ spec = describe "plugin" $ do
 recursive :: Int -> Int
 recursive 0 = 1
 recursive n = n * recursive (n - 1)
+{-# INLINE recursive #-}
 
 mutual :: Int -> Int
 mutual 0 = 1

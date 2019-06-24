@@ -8,17 +8,14 @@ import           Data.Kind
 import           Data.Map (Map)
 import qualified Data.Map as M
 import           Data.Maybe
-import           Data.Monoid
-import qualified Language.Haskell.TH.Syntax as TH
+import           Data.Set (Set)
+import qualified Data.Set as S
 
 import Bag
-import Convert
 import ErrUtils
 import GhcPlugins hiding ((<>), debugTraceMsg)
 import HsSyn
 import MonadUtils
-
-import Loopbreaker
 
 
 ------------------------------------------------------------------------------
@@ -31,75 +28,56 @@ type MonadInline m = ((MonadUnique m, MonadIO m, HasDynFlags m) :: Constraint)
 action :: MonadInline m
        => [CommandLineOption] -> HsGroup GhcRn -> m (HsGroup GhcRn)
 action opts group = do
-  -- Last option takes precedence, on by default
-  let break_by_default = fromMaybe True $ getLast
-                       $ flip foldMap opts $ Last . \case
-                           "default_on"  -> Just True
-                           "default_off" -> Just False
-                           _             -> Nothing
+  let shouldDisable = "disable" `elem` opts
 
   dyn_flags <- getDynFlags
 
-  if optLevel dyn_flags > 0
+  if not shouldDisable && optLevel dyn_flags > 0
     then do
       liftIO $ showPass dyn_flags "Break loops"
-      inlineRecCalls break_by_default group
+      inlineRecCalls group
     else
       pure group
 
 ------------------------------------------------------------------------------
-inlineRecCalls :: MonadInline m => Bool -> HsGroup GhcRn -> m (HsGroup GhcRn)
-inlineRecCalls break_by_default group
-  | HsGroup { hs_valds = XValBindsLR (NValBinds binds sigs)
-            , hs_annds = map unLoc -> anns
-            } <- group
+inlineRecCalls :: MonadInline m => HsGroup GhcRn -> m (HsGroup GhcRn)
+inlineRecCalls group@HsGroup{ hs_valds = XValBindsLR (NValBinds binds sigs) }
   = do
-  let types      = typesMap sigs
-      loopb_anns = loopbreakerAnnsMap anns
+  let (types, inlined) = typesFromSigs &&& inlinedFromSigs $ unLoc <$> sigs
 
-  (binds', extra_sigs) <- second concat . unzip <$>
-    traverse (inlineRecCall break_by_default types loopb_anns) binds
+  (binds', extra_sigs) <- second concat . unzip
+                      <$> traverse (inlineRecCall types inlined) binds
 
   pure group{ hs_valds = XValBindsLR $ NValBinds binds' $ sigs ++ extra_sigs }
 
-inlineRecCalls _ _ = error "inlineRecCalls: expected renamed group"
+inlineRecCalls _ = error "inlineRecCalls: expected renamed group"
 
 ------------------------------------------------------------------------------
-typesMap :: Ord (IdP p) => [LSig p] -> Map (IdP p) (LHsSigWcType p)
-typesMap = M.fromList . concatMap sigToTups where
-  sigToTups (L _ (TypeSig _ names type_)) = (,type_) . unLoc <$> names
-  sigToTups _                             = []
+typesFromSigs :: Ord (IdP p) => [Sig p] -> Map (IdP p) (LHsSigWcType p)
+typesFromSigs = M.fromList . concatMap sigToTups where
+  sigToTups (TypeSig _ names type_) = (,type_) . unLoc <$> names
+  sigToTups _                       = []
 
 ------------------------------------------------------------------------------
-loopbreakerAnnsMap :: [AnnDecl GhcRn] -> Map Name LoopbreakerAnn
-loopbreakerAnnsMap = M.fromList . catMaybes . map annToTup where
-  annToTup (HsAnnotation _ _ (ValueAnnProvenance (L _ name)) (L _ expr))
-    | HsVar _ (L _ ann_name) <- expr
-    = (name,) <$> if
-        | ann_name `matchesThName` 'Loopbreaker   -> Just Loopbreaker
-        | ann_name `matchesThName` 'NoLoopbreaker -> Just NoLoopbreaker
-        | otherwise                               -> Nothing
-  annToTup _ = Nothing
-
-------------------------------------------------------------------------------
-matchesThName :: Name -> TH.Name -> Bool
-matchesThName name th_name = nameRdrName name `elem` thRdrNameGuesses th_name
+inlinedFromSigs :: Ord (IdP p) => [Sig p] -> Set (IdP p)
+inlinedFromSigs = S.fromList . catMaybes . map nameIfInlineSig where
+  nameIfInlineSig (InlineSig _ (L _ name) pragma)
+    | isInlinePragma pragma = Just name
+  nameIfInlineSig _ = Nothing
 
 ------------------------------------------------------------------------------
 -- | Inserts loopbreaker to recursive binding group of single binding and
 -- emits necessary signatures.
 inlineRecCall
   :: MonadInline m
-  => Bool                           -- ^ inline by default?
-  -> Map Name (LHsSigWcType GhcRn)  -- ^ types of bindings
-  -> Map Name LoopbreakerAnn        -- ^ 'Loopbreaker' annotations
+  => Map Name (LHsSigWcType GhcRn)  -- ^ types of bindings
+  -> Set Name                       -- ^ 'Loopbreaker' annotations
   -> (RecFlag, LHsBinds GhcRn)      -- ^ binding being inlined
   -> m ((RecFlag, LHsBinds GhcRn), [LSig GhcRn])
-inlineRecCall break_by_default types anns (Recursive, binds)
+inlineRecCall types inlined (Recursive, binds)
   | (bagToList -> [L fun_loc fun_bind])           <- binds
   , FunBind{ fun_id = L _ fun_name, fun_matches } <- fun_bind
-  , ann                                           <- M.lookup fun_name anns
-  , ann == Just Loopbreaker || ann == Nothing && break_by_default
+  , S.member fun_name inlined
   = do
   dyn_flags <- getDynFlags
   liftIO $ debugTraceMsg dyn_flags 2 $ text "Loopbreaker:" <+> ppr fun_name
@@ -116,16 +94,12 @@ inlineRecCall break_by_default types anns (Recursive, binds)
           , loopb_decl
           ]
       )
-    , (  [ inlineSig alwaysInlinePragma fun_name
-         , inlineSig noInlinePragma     loopb_name
-         ]
       -- If the original function didn't have type signature specified, we
       -- shouldn't have to have either
-      ++ maybeToList m_loopb_sig
-      )
+    , inlineSig noInlinePragma loopb_name : maybeToList m_loopb_sig
     )
 -- We ignore mutually recursive and other bindings
-inlineRecCall _ _ _ binds = pure (binds, [])
+inlineRecCall _ _ binds = pure (binds, [])
 
 ------------------------------------------------------------------------------
 -- | Creates loopbreaker and it's name from the name of original function.
