@@ -26,9 +26,9 @@ import Loopbreaker
 type MonadInline m = ((MonadUnique m, MonadIO m, HasDynFlags m) :: Constraint)
 
 ------------------------------------------------------------------------------
--- | Forces compiler to inline functions by creating loopbreaker with
--- NO_INLINE pragma, changing recursive calls to use it and by adding INLINE
--- pragma to the original function.
+-- | Forces compiler to inline functions by creating loopbreaker with NOINLINE
+-- pragma, changing recursive calls to use it and by adding INLINE pragma to
+-- the original function.
 action :: MonadInline m
        => [CommandLineOption] -> HsGroup GhcRn -> m (HsGroup GhcRn)
 action opts group = do
