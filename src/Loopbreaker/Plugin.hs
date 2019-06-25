@@ -12,5 +12,5 @@ import Loopbreaker.InlineRecCalls (action)
 plugin :: Plugin
 plugin = defaultPlugin
   { pluginRecompile     = purePlugin
-  , renamedResultAction = const $ traverse action .: (,)
+  , renamedResultAction = \opts -> traverse (action opts) .: (,)
   }

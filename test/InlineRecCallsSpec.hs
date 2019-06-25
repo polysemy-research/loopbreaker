@@ -2,10 +2,9 @@
 
 {-# LANGUAGE TemplateHaskell #-}
 
-module PluginSpec (spec) where
+module InlineRecCallsSpec (spec) where
 
-import Test.Hspec
-import Test.Inspection
+import TestUtils
 
 
 ------------------------------------------------------------------------------
@@ -19,6 +18,7 @@ spec = describe "plugin" $ do
 recursive :: Int -> Int
 recursive 0 = 1
 recursive n = n * recursive (n - 1)
+{-# INLINE recursive #-}
 
 mutual :: Int -> Int
 mutual 0 = 1
@@ -28,8 +28,3 @@ mutual n = n * mutual' (n - 1)
 mutual' :: Int -> Int
 mutual' = mutual
 {-# NOINLINE mutual' #-}
-
-------------------------------------------------------------------------------
-shouldSucceed :: Result -> Expectation
-shouldSucceed r = r `shouldSatisfy` \case Success{} -> True
-                                          Failure e -> error e
