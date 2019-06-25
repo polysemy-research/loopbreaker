@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: fb7609b8d5dd3f93d295b8329de0b2690c578d34271006006d365bf42a9fd603
+-- hash: 1509557f4dc0308eb9d18b550529d64c787c36cb11f112eea86ab99b06351d6e
 
 name:           loopbreaker
 version:        0.1.0.0
@@ -31,7 +31,7 @@ source-repository head
 
 library
   exposed-modules:
-      Loopbreaker.Plugin
+      Loopbreaker
   other-modules:
       Loopbreaker.InlineRecCalls
       Loopbreaker.Utils
@@ -59,7 +59,7 @@ test-suite loopbreaker-test
   hs-source-dirs:
       test
   default-extensions: ConstraintKinds FlexibleContexts KindSignatures LambdaCase MultiWayIf NamedFieldPuns OverloadedStrings ScopedTypeVariables TupleSections TypeFamilies UnicodeSyntax ViewPatterns
-  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N -fplugin=Loopbreaker.Plugin
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N -fplugin=Loopbreaker
   build-tool-depends:
       hspec-discover:hspec-discover
   build-depends:

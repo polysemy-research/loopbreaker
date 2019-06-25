@@ -19,7 +19,7 @@ dependencies :
 
 library :
   source-dirs     : src
-  exposed-modules : [Loopbreaker.Plugin]
+  exposed-modules : [Loopbreaker]
 
 tests :
   loopbreaker-test :
@@ -29,7 +29,7 @@ tests :
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
-    - -fplugin=Loopbreaker.Plugin
+    - -fplugin=Loopbreaker
     build-tools  :
     - hspec-discover
     dependencies :
