@@ -34,7 +34,7 @@
 -- @
 --
 -- Now, in modules where the plugin is enabled, any self-recursive functions
--- marked as @INLINE@ will have their performance greatly improved.
+-- marked as @INLINE@ may have their performance greatly improved.
 
 -- TODO(Matej): update docs when loopbreakers for local definitions get added
 
