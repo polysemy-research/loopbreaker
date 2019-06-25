@@ -1,4 +1,4 @@
-# Loopbreaker
+# loopbreaker
 
 Performance of libraries like [polysemy](https://github.com/polysemy-research/polysemy)
 depends on code being aggresively inlined. Problem is that GHC is not very
@@ -35,3 +35,9 @@ used.
 There's no trick --- just do the same transformations after renaming, rather
 than after typechecking. We realized this plugin is useful outside of
 polysemy, so it's been released as a standalone package.
+
+## Usage
+
+Add `-fplugin=Loopbreaker` into your `package.yaml` or specific module and
+`INLINE` pragma to every function that should have loopbreaker generated. See
+documentation for more info.

@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -O2 -fplugin-opt=Loopbreaker.Plugin:disable #-}
+{-# OPTIONS_GHC -O2 -fplugin-opt=Loopbreaker:disable #-}
 
 {-# LANGUAGE TemplateHaskell #-}
 
