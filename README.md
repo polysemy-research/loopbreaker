@@ -38,6 +38,7 @@ polysemy, so it's been released as a standalone package.
 
 ## Usage
 
-Add `-fplugin=Loopbreaker` into your `package.yaml` or specific module. This will cause the plugin to generate explicit loopbreakers for any self-recursive functions marked as `INLINE`, which can dramatically improve their performance.
-`INLINE` pragma to every function that should have loopbreaker generated. See
-documentation for more info.
+Add `-fplugin=Loopbreaker` into your `package.yaml` or specific module. This
+will cause the plugin to generate explicit loopbreakers for any self-recursive
+functions marked as `INLINE`, which can dramatically improve their
+performance. See documentation for more info.

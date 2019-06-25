@@ -1,7 +1,7 @@
 -- | To use plugin, you can:
 --
--- * Either enable the plugin globally in your project configuration's @ghc-options@ field
--- (@package.yaml@ or @\<name\>.cabal@):
+-- * Either enable the plugin globally in your project configuration's
+-- @ghc-options@ field (@package.yaml@ or @\<name\>.cabal@):
 --
 -- @
 -- # package.yaml
@@ -13,7 +13,8 @@
 -- ...
 -- @
 --
--- * Alternatively, just enable the plugin in specific modules that may benefit from it's use:
+-- * Or alternatively, just enable the plugin in specific modules that may
+-- benefit from it's use:
 --
 -- @
 -- -- \<name\>.hs
@@ -32,15 +33,8 @@
 -- ...
 -- @
 --
--- Now, in modules where the plugin is enabled, any self-recursive functions marked as @INLINE@ will have their performance greatly improved.
--- every self-recursive top-level definition with @INLINE@ pragma, e.g.:
---
--- @
--- fact :: Int -> Int
--- fact 0 = 1
--- fact n = n * fact (n - 1)
--- {-\# INLINE fact \#-}
--- @
+-- Now, in modules where the plugin is enabled, any self-recursive functions
+-- marked as @INLINE@ will have their performance greatly improved.
 
 -- TODO(Matej): update docs when loopbreakers for local definitions get added
 
