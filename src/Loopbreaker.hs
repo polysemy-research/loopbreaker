@@ -1,6 +1,6 @@
 -- | To use plugin, you can:
 --
--- * Add flag into your project configuration's @ghc-options@ field
+-- * Either enable the plugin globally in your project configuration's @ghc-options@ field
 -- (@package.yaml@ or @\<name\>.cabal@):
 --
 -- @
@@ -13,7 +13,7 @@
 -- ...
 -- @
 --
--- * Add flag to specific modules that may benefit from it's use:
+-- * Alternatively, just enable the plugin in specific modules that may benefit from it's use:
 --
 -- @
 -- -- \<name\>.hs
@@ -32,7 +32,7 @@
 -- ...
 -- @
 --
--- Now, in modules where plugin is enabled, loopbreaker will be generated for
+-- Now, in modules where the plugin is enabled, any self-recursive functions marked as @INLINE@ will have their performance greatly improved.
 -- every self-recursive top-level definition with @INLINE@ pragma, e.g.:
 --
 -- @
