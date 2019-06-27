@@ -16,8 +16,10 @@ spec = describe "plugin" $ do
   -- TODO: implementation as Core pass to resolve this
   -- it "should work without signatures" $ do
   --   shouldSucceed $(inspectTest $ 'recursiveNoSig === 'mutual)
-  it "should explicitly break recursion in local bindings" $ do
-    shouldSucceed $(inspectTest $ 'localRecursive === 'localMutual)
+  it "should explicitly break recursion in where bindings" $ do
+    shouldSucceed $(inspectTest $ 'localRecursiveWhere === 'localMutual)
+  it "should explicitly break recursion in let bindings" $ do
+    shouldSucceed $(inspectTest $ 'localRecursiveLet === 'localMutual)
 
 ------------------------------------------------------------------------------
 recursive :: Int -> Int
@@ -38,11 +40,19 @@ mutual' :: Int -> Int
 mutual' = mutual
 {-# NOINLINE mutual' #-}
 
-localRecursive :: Int -> Int
-localRecursive = local where
+localRecursiveWhere :: Int -> Int
+localRecursiveWhere = local where
   local 0 = 1
   local n = n * local (n - 1)
   {-# INLINE local #-}
+
+localRecursiveLet :: Int -> Int
+localRecursiveLet = let
+  local 0 = 1
+  local n = n * local (n - 1)
+  {-# INLINE local #-}
+ in
+  local
 
 localMutual :: Int -> Int
 localMutual = local where
