@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1509557f4dc0308eb9d18b550529d64c787c36cb11f112eea86ab99b06351d6e
+-- hash: 7d40ff9eb6d5bfa16d7cf23db04b05f9f1c18aa7fc44eb0249fb96accd7f3a56
 
 name:           loopbreaker
-version:        0.1.0.0
+version:        0.1.1.0
 synopsis:       inline self-recursive definitions
 description:    Please see the README file on Github for more info
 category:       Plugin

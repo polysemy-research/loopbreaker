@@ -27,7 +27,7 @@ type MonadInline m = ((MonadUnique m, MonadIO m, HasDynFlags m) :: Constraint)
 -- the original function.
 action :: MonadInline m
        => [CommandLineOption] -> HsGroup GhcRn -> m (HsGroup GhcRn)
-action opts group = do
+action opts group@HsGroup{ hs_valds } = do
   let shouldDisable = "disable" `elem` opts
 
   dyn_flags <- getDynFlags
@@ -35,22 +35,25 @@ action opts group = do
   if not shouldDisable && optLevel dyn_flags > 0
     then do
       liftIO $ showPass dyn_flags "Break loops"
-      inlineRecCalls group
+      valds' <- inlineRecCalls hs_valds
+      pure group{ hs_valds = valds' }
     else
       pure group
 
+action _ _ = error "Loopbreaker.InlineRecCalls.action: expected renamed group"
+
 ------------------------------------------------------------------------------
-inlineRecCalls :: MonadInline m => HsGroup GhcRn -> m (HsGroup GhcRn)
-inlineRecCalls group@HsGroup{ hs_valds = XValBindsLR (NValBinds binds sigs) }
-  = do
+inlineRecCalls :: MonadInline m => HsValBinds GhcRn -> m (HsValBinds GhcRn)
+inlineRecCalls (XValBindsLR (NValBinds binds sigs)) = do
   let (types, inlined) = typesFromSigs &&& inlinedFromSigs $ unLoc <$> sigs
 
   (binds', extra_sigs) <- second concat . unzip
                       <$> traverse (inlineRecCall types inlined) binds
 
-  pure group{ hs_valds = XValBindsLR $ NValBinds binds' $ sigs ++ extra_sigs }
+  pure $ XValBindsLR $ NValBinds binds' $ sigs ++ extra_sigs
 
-inlineRecCalls _ = error "inlineRecCalls: expected renamed group"
+-- TODO: should we throw an error here instead?
+inlineRecCalls val_binds = pure val_binds
 
 ------------------------------------------------------------------------------
 typesFromSigs :: Ord (IdP p) => [Sig p] -> Map (IdP p) (LHsSigWcType p)
@@ -84,8 +87,11 @@ inlineRecCall types inlined (Recursive, binds)
 
   (loopb_name, loopb_decl) <- loopbreaker fun_name
 
-  let m_loopb_sig  = loopbreakerSig loopb_name <$> M.lookup fun_name types
-      fun_matches' = replaceVarNames fun_name loopb_name fun_matches
+  fun_matches' <- everywhereM ( fmap (replaceVarNamesT fun_name loopb_name)
+                              . inlineLocalRecCallsM
+                              ) fun_matches
+
+  let m_loopb_sig = loopbreakerSig loopb_name <$> M.lookup fun_name types
 
   pure
     ( ( Recursive
@@ -139,9 +145,17 @@ noInlinePragma = defaultInlinePragma
   }
 
 ------------------------------------------------------------------------------
--- | Returns value with every name in variable expression replaced.
-replaceVarNames :: Data a => Name -> Name -> a -> a
-replaceVarNames from to = everywhere $ mkT $ \case
+-- | Transformation that applies loopbreakers to local bindings.
+inlineLocalRecCallsM :: (MonadInline m, Typeable a) => a -> m a
+inlineLocalRecCallsM = mkM $ \case
+  (HsValBinds NoExt binds :: HsLocalBinds GhcRn)
+    -> HsValBinds NoExt <$> inlineRecCalls binds
+  e -> pure e
+
+------------------------------------------------------------------------------
+-- | Transformation that replaces every name in variable expression.
+replaceVarNamesT :: Typeable a => Name -> Name -> a -> a
+replaceVarNamesT from to = mkT $ \case
   HsVar NoExt (L loc name) :: HsExpr GhcRn
     | name == from -> HsVar NoExt $ L loc to
   e -> e
