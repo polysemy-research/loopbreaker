@@ -49,6 +49,7 @@ import Loopbreaker.InlineRecCalls (action)
 ------------------------------------------------------------------------------
 plugin :: Plugin
 plugin = defaultPlugin
-  { pluginRecompile     = purePlugin
+  { -- 'disable' flag changes behaviour
+    pluginRecompile     = flagRecompile
   , renamedResultAction = \opts -> traverse (action opts) .: (,)
   }
