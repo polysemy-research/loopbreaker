@@ -74,7 +74,7 @@ inlinedFromSigs = S.fromList . catMaybes . map nameIfInlineSig where
 inlineRecCall
   :: MonadInline m
   => Map Name (LHsSigWcType GhcRn)  -- ^ types of bindings
-  -> Set Name                       -- ^ 'Loopbreaker' annotations
+  -> Set Name                       -- ^ Loopbreaker annotations
   -> (RecFlag, LHsBinds GhcRn)      -- ^ binding being inlined
   -> m ((RecFlag, LHsBinds GhcRn), [LSig GhcRn])
 inlineRecCall types inlined (Recursive, binds)
@@ -137,7 +137,7 @@ inlineSig :: (XInlineSig p ~ NoExt) => InlinePragma -> IdP p -> LSig p
 inlineSig how name = noLoc $ InlineSig NoExt (noLoc name) how
 
 ------------------------------------------------------------------------------
--- | Contrary to 'neverInlinePragma', this has behaviour of 'NOINLINE' pragma.
+-- | Contrary to 'neverInlinePragma', this has behaviour of @NOINLINE@ pragma.
 noInlinePragma :: InlinePragma
 noInlinePragma = defaultInlinePragma
   { inl_inline = NoInline

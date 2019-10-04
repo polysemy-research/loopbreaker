@@ -52,7 +52,6 @@ test-suite loopbreaker-test
   main-is: Spec.hs
   other-modules:
       DisableFlagSpec
-      Experiments
       InlineRecCallsSpec
       PragmaDetectionSpec
       TestUtils
