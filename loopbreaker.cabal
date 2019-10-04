@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a8e1337a923e21116150c16dc38400e24e6e1cc6a0e4d210ad75b6455a7e91fc
+-- hash: b56a57a63829e80e77783f285ed80370eb48a4b37fb1c92fa74e2870f29817f2
 
 name:           loopbreaker
-version:        0.1.1.0
+version:        0.1.1.1
 synopsis:       inline self-recursive definitions
 description:    Please see the README file on Github for more info
 category:       Plugin
@@ -52,6 +52,7 @@ test-suite loopbreaker-test
   main-is: Spec.hs
   other-modules:
       DisableFlagSpec
+      Experiments
       InlineRecCallsSpec
       PragmaDetectionSpec
       TestUtils

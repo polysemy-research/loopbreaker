@@ -1,7 +1,7 @@
 name        : loopbreaker
 synopsis    : inline self-recursive definitions
 description : Please see the README file on Github for more info
-version     : 0.1.1.0
+version     : 0.1.1.1
 category    : Plugin
 github      : "polysemy-research/loopbreaker"
 license     : BSD3
