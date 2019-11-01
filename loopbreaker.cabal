@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b56a57a63829e80e77783f285ed80370eb48a4b37fb1c92fa74e2870f29817f2
+-- hash: d119510f8f4cf364fb3685f93c9b5b4684667c45e0b103e35f11e635e2efe8cf
 
 name:           loopbreaker
 version:        0.1.1.1
@@ -52,7 +52,6 @@ test-suite loopbreaker-test
   main-is: Spec.hs
   other-modules:
       DisableFlagSpec
-      Experiments
       InlineRecCallsSpec
       PragmaDetectionSpec
       TestUtils

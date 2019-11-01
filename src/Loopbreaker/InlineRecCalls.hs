@@ -85,13 +85,16 @@ inlineRecCall types inlined (Recursive, binds)
   dyn_flags <- getDynFlags
   liftIO $ debugTraceMsg dyn_flags 2 $ text "Loopbreaker:" <+> ppr fun_name
 
-  (loopb_name, loopb_decl) <- loopbreaker fun_name
+  let fun_type = M.lookup fun_name types
+
+  (loopb_name, loopb_decl) <- loopbreaker fun_name fun_type
+
+  let m_loopb_sig = loopbreakerSig loopb_name <$> fun_type
 
   fun_matches' <- everywhereM ( fmap (replaceVarNamesT fun_name loopb_name)
                               . inlineLocalRecCallsM
                               ) fun_matches
 
-  let m_loopb_sig = loopbreakerSig loopb_name <$> M.lookup fun_name types
 
   pure
     ( ( Recursive
@@ -109,9 +112,10 @@ inlineRecCall _ _ binds = pure (binds, [])
 
 ------------------------------------------------------------------------------
 -- | Creates loopbreaker and it's name from name of the original function.
-loopbreaker :: MonadUnique m => Name -> m (Name, LHsBind GhcRn)
-loopbreaker fun_name =
-  (id &&& loopbreakerDecl fun_name) <$> loopbreakerName fun_name
+loopbreaker :: MonadUnique m
+            => Name -> Maybe (LHsSigWcType GhcRn) -> m (Name, LHsBind GhcRn)
+loopbreaker fun_name fun_type =
+  (id &&& loopbreakerDecl fun_name fun_type) <$> loopbreakerName fun_name
 
 ------------------------------------------------------------------------------
 loopbreakerName :: MonadUnique m => Name -> m Name
@@ -119,11 +123,11 @@ loopbreakerName (occName -> occNameFS -> orig_fs) =
   flip mkSystemVarName (orig_fs <> "__Loopbreaker") <$> getUniqueM
 
 ------------------------------------------------------------------------------
-loopbreakerDecl :: Name -> Name -> LHsBind GhcRn
-loopbreakerDecl fun_name loopb_name =
+loopbreakerDecl :: Name -> Maybe (LHsSigWcType GhcRn) -> Name -> LHsBind GhcRn
+loopbreakerDecl fun_name fun_type loopb_name =
   noLoc $ mkTopFunBind Generated (noLoc loopb_name)
     [ mkSimpleMatch (mkPrefixFunRhs $ noLoc loopb_name) [] $
-        nlHsVar fun_name
+        maybe id (fmap noLoc . ExprWithTySig) fun_type $ nlHsVar fun_name
     ]
 
 ------------------------------------------------------------------------------
