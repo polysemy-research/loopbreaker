@@ -1,5 +1,7 @@
 # loopbreaker
 
+([Deprecated](https://github.com/polysemy-research/loopbreaker/issues/5#issuecomment-643747804), will be removed from [polysemy](https://github.com/polysemy-research/polysemy) at some point)
+
 Performance of libraries like [polysemy](https://github.com/polysemy-research/polysemy)
 depends on code being aggresively inlined. Problem is that GHC is not very
 keen on inlining self-recursive definitions. Luckily, there's a way we can
